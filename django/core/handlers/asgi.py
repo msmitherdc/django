@@ -190,7 +190,7 @@ class ASGIHandler(base.BaseHandler):
             return
 
         async def process_request(request, send):
-            response = await self.run_get_response(request)
+            response = await self.run_get_response(request, scope)
             try:
                 await self.send_response(response, send)
             except asyncio.CancelledError:
@@ -246,9 +246,10 @@ class ASGIHandler(base.BaseHandler):
         # This should never happen.
         assert False, "Invalid ASGI message after request body: %s" % message["type"]
 
-    async def run_get_response(self, request):
+    async def run_get_response(self, request, scope):
         """Get async response."""
         # Use the async mode of BaseHandler.
+        set_script_prefix(get_script_prefix(scope))
         response = await self.get_response_async(request)
         response._handler_class = self.__class__
         # Increase chunk size on file responses (ASGI servers handles low-level
